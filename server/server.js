@@ -32,10 +32,17 @@ import notificationRoutes from './routes/notificationRoutes.js';
 // Load Env
 dotenv.config();
 
-// Connect Database
-connectDB();
-
 const app = express();
+
+// Database Connection Middleware for Serverless
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 // Detect if running on Vercel serverless
 const isVercel = !!process.env.VERCEL;
