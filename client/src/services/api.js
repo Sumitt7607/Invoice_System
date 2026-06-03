@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+const API_BASE = import.meta.env.PROD
+  ? 'https://invoice-system-orpin-seven.vercel.app/api'
+  : '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -36,7 +40,7 @@ api.interceptors.response.use(
         }
 
         // Call refresh endpoint directly using a clean axios instance to avoid infinite loops
-        const res = await axios.post('/api/auth/refresh', { refreshToken });
+        const res = await axios.post(`${API_BASE}/auth/refresh`, { refreshToken });
 
         if (res.data.success) {
           const { accessToken } = res.data.data;
