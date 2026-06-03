@@ -43,8 +43,10 @@ const connectDB = async () => {
     cached.conn = await cached.promise;
   } catch (e) {
     cached.promise = null;
-    console.error(`Database Connection Error: ${e.message}`);
-    throw e;
+    const redactedUri = uri.replace(/:([^@]+)@/, ':****@');
+    const enrichedError = new Error(`Database Connection Error: ${e.message} (Connecting to: ${redactedUri})`);
+    console.error(enrichedError.message);
+    throw enrichedError;
   }
 
   return cached.conn;
