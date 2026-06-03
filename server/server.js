@@ -6,6 +6,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import os from 'os';
 
 // DB connection
 import connectDB from './config/db.js';
@@ -35,10 +36,9 @@ dotenv.config();
 connectDB();
 
 const app = express();
-const server = http.createServer(app);
 
-// Initialize Socket.io
-initSocket(server, process.env.CLIENT_URL);
+// Detect if running on Vercel serverless
+const isVercel = !!process.env.VERCEL;
 
 // Security Headers & CORS
 app.use(helmet({
@@ -57,7 +57,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Ensure uploads directory exists
-const uploadDir = path.join(process.cwd(), 'uploads');
+// On Vercel serverless, the filesystem is read-only except /tmp
+const uploadDir = isVercel
+  ? path.join(os.tmpdir(), 'uploads')
+  : path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -86,8 +89,19 @@ app.get('/', (req, res) => {
 // Central Error Handler
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+// Only start HTTP server + Socket.io when running locally (not on Vercel serverless)
+if (!isVercel) {
+  const server = http.createServer(app);
 
-server.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-});
+  // Initialize Socket.io (only works with a persistent server, not serverless)
+  initSocket(server, process.env.CLIENT_URL);
+
+  const PORT = process.env.PORT || 5000;
+  server.listen(PORT, () => {
+    console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  });
+}
+
+// Export the Express app for Vercel serverless
+export default app;
+
