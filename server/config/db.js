@@ -8,7 +8,12 @@ if (!cached) {
 }
 
 const connectDB = async () => {
-  const uri = process.env.MONGO_URI;
+  let uri = process.env.MONGO_URI;
+  if (uri) {
+    // Strip surrounding quotes and whitespace from copy-paste
+    uri = uri.trim().replace(/^["']|["']$/g, '');
+  }
+
   if (!uri) {
     const errMsg = 'MONGO_URI is missing! Please configure it in your Vercel project settings.';
     console.error(errMsg);
