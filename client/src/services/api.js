@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.PROD
-  ? 'https://invoice-system-orpin-seven.vercel.app/api'
-  : '/api';
+// Always use relative /api path.
+// In dev: Vite proxy (vite.config.js) forwards /api → http://localhost:5000
+// In prod: Vercel rewrite (vercel.json) forwards /api → the deployed backend
+const API_BASE = '/api';
 
 const api = axios.create({
   baseURL: API_BASE,

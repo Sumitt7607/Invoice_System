@@ -16,11 +16,10 @@ export const useSocket = (onNotificationReceived) => {
       return;
     }
 
-    // In production, connect directly to the backend server.
-    // In development, Vite proxies WebSocket connections to localhost:5000.
-    const serverUrl = import.meta.env.PROD
-      ? 'https://invoice-system-orpin-seven.vercel.app'
-      : '/';
+    // Use the same origin in both dev and prod.
+    // In dev: Vite proxy forwards /socket.io/* → localhost:5000
+    // In prod: Vercel rewrite forwards /socket.io/* → the deployed backend
+    const serverUrl = window.location.origin;
 
     const socket = io(serverUrl, {
       transports: ['websocket', 'polling'],

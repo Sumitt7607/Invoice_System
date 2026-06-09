@@ -51,8 +51,25 @@ const isVercel = !!process.env.VERCEL;
 app.use(helmet({
   crossOriginResourcePolicy: false, // allow images/receipts to load in browser
 }));
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5171',
+  'http://localhost:5000',
+  process.env.CLIENT_URL,
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    // Allow any Vercel preview/production URL for this project
+    const isVercelPreview = /^https:\/\/invoice-system(-[a-z0-9]+)*\.vercel\.app$/.test(origin);
+    if (allowedOrigins.includes(origin) || isVercelPreview) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
   credentials: true,
 }));
 
